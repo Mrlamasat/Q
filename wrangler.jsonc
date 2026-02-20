@@ -1,0 +1,10 @@
+{
+  "name": "ramadan-qr-readers",
+  "compatibility_date": "2026-02-20",
+  "type": "static",
+  "account_id": "<ضع هنا الـ Account ID من Cloudflare>",
+  "project_name": "ramadan-qr-readers",
+  "assets": {
+    "directory": "./build"   // هذا مجلد ملفات React بعد البناء
+  }
+}
