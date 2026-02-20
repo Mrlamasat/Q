@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DailyPart from "./DailyPart";
-import HijriDate from "hijri-date/lib/safe";
 
+// كل الأجزاء الـ30
 const dailyParts = [
   { id: 1, reader: "شاغر 13", startVerse: 1, endVerse: 141, startSurah: "الفاتحة", endSurah: "البقرة" },
   { id: 2, reader: "ريان", startVerse: 142, endVerse: 252, startSurah: "البقرة", endSurah: "البقرة" },
@@ -37,17 +37,22 @@ const dailyParts = [
 
 function App() {
   const [marks, setMarks] = useState({});
-  const [todayParts, setTodayParts] = useState([]);
+  const [todayPart, setTodayPart] = useState(null);
 
   useEffect(() => {
     const savedMarks = JSON.parse(localStorage.getItem("marks")) || {};
     setMarks(savedMarks);
 
-    const today = new HijriDate();
-    const ramadanDay = today.getMonth() === 8 ? today.getDate() : null;
+    // حساب اليوم الحالي من رمضان باستخدام JavaScript فقط
+    const ramadanStart = new Date(2026, 3, 1); // 1 أبريل 2026 (تعديل حسب الرؤية)
+    const today = new Date();
+    const diffTime = today - ramadanStart;
+    const ramadanDay = diffTime >= 0 && diffTime < 30*24*60*60*1000
+      ? Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1
+      : null;
 
-    if (ramadanDay) {
-      setTodayParts([dailyParts[ramadanDay - 1]]);
+    if (ramadanDay && dailyParts[ramadanDay - 1]) {
+      setTodayPart(dailyParts[ramadanDay - 1]);
     }
   }, []);
 
@@ -60,15 +65,9 @@ function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-6 text-center">الورد اليومي لشهر رمضان</h1>
-      {todayParts.length === 0 && <p>اليوم الحالي ليس ضمن رمضان</p>}
-      {todayParts.map((part) => (
-        <DailyPart
-          key={part.id}
-          part={part}
-          marked={marks[part.id] || false}
-          onMark={() => handleMark(part.id)}
-        />
-      ))}
+      {todayPart && (
+        <DailyPart part={todayPart} marked={marks[todayPart.id] || false} onMark={() => handleMark(todayPart.id)} />
+      )}
 
       <div className="mt-10 w-full md:w-1/2">
         <h2 className="text-2xl font-bold mb-4 text-center">قائمة التأشير لكل الأعضاء</h2>
@@ -76,9 +75,7 @@ function App() {
           {dailyParts.map((part) => (
             <li
               key={part.id}
-              className={`p-2 rounded flex justify-between ${
-                marks[part.id] ? "bg-green-100" : "bg-white"
-              }`}
+              className={`p-2 rounded flex justify-between ${marks[part.id] ? "bg-green-100" : "bg-white"}`}
             >
               <span>{part.reader}</span>
               <span>{marks[part.id] ? "✅" : "❌"}</span>
@@ -86,8 +83,3 @@ function App() {
           ))}
         </ul>
       </div>
-    </div>
-  );
-}
-
-export default App;
